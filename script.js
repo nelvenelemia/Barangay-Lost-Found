@@ -1,9 +1,12 @@
-// Barangay Lost & Found — form validation and localStorage
 const STORAGE_KEY = "barangayLostFoundReports";
+
 const form = document.getElementById("item-form");
 const reportList = document.getElementById("report-list");
 const emptyState = document.getElementById("empty-state");
+const filterSelect = document.getElementById("filter-select");
+const searchInput = document.getElementById("search-input");
 const formError = document.getElementById("form-error");
+const toast = document.getElementById("toast");
 
 let reports = loadReports();
 
@@ -23,57 +26,96 @@ function saveReports() {
     return true;
   } catch (error) {
     console.error("Could not save reports:", error);
-    alert("Unable to save. Browser storage may be full or disabled.");
+    showToast("Unable to save. Browser storage may be full or disabled.");
     return false;
   }
 }
 
-function renderReports() {
-  reportList.replaceChildren();
-  emptyState.classList.toggle("hidden", reports.length > 0);
+function updateStats() {
+  document.getElementById("total-count").textContent = reports.length;
+  document.getElementById("lost-count").textContent = reports.filter(item => item.type === "Lost").length;
+  document.getElementById("found-count").textContent = reports.filter(item => item.type === "Found").length;
+}
 
-  reports.forEach(item => {
+function formatDate(dateString) {
+  if (!dateString) return "Date not provided";
+  const date = new Date(`${dateString}T00:00:00`);
+  return Number.isNaN(date.getTime())
+    ? dateString
+    : date.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+}
+
+function createTextElement(tag, className, text) {
+  const element = document.createElement(tag);
+  element.className = className;
+  element.textContent = text;
+  return element;
+}
+
+function renderReports() {
+  const selectedType = filterSelect.value;
+  const searchTerm = searchInput.value.trim().toLowerCase();
+
+  const visibleReports = reports.filter(item => {
+    const matchesType = selectedType === "All" || item.type === selectedType;
+    const searchableText = [item.name, item.category, item.location, item.description].join(" ").toLowerCase();
+    return matchesType && searchableText.includes(searchTerm);
+  });
+
+  reportList.replaceChildren();
+  emptyState.classList.toggle("hidden", visibleReports.length > 0);
+
+  if (reports.length > 0 && visibleReports.length === 0) {
+    const message = createTextElement("p", "no-results", "No reports match your search or filter.");
+    message.style.cssText = "color:#758198;text-align:center;font-size:12px;padding:25px 8px;";
+    reportList.appendChild(message);
+    emptyState.classList.add("hidden");
+  }
+
+  visibleReports.forEach(item => {
     const card = document.createElement("article");
     card.className = "report-card";
 
-    const title = document.createElement("h3");
-    title.className = "report-title";
-    title.textContent = item.name;
-
-    const badge = document.createElement("span");
-    badge.className = `report-badge ${item.type === "Lost" ? "badge-lost" : "badge-found"}`;
-    badge.textContent = item.type;
-
     const top = document.createElement("div");
     top.className = "report-top";
-    top.append(title, badge);
+    top.appendChild(createTextElement("h3", "report-title", item.name));
 
-    const category = document.createElement("p");
-    category.className = "report-category";
-    category.textContent = item.category;
+    const badge = createTextElement("span", `report-badge ${item.type === "Lost" ? "badge-lost" : "badge-found"}`, item.type);
+    top.appendChild(badge);
+    card.appendChild(top);
 
-    const description = document.createElement("p");
-    description.className = "report-description";
-    description.textContent = item.description;
+    card.appendChild(createTextElement("p", "report-category", item.category));
+    card.appendChild(createTextElement("p", "report-description", item.description));
 
     const meta = document.createElement("div");
     meta.className = "report-meta";
-    const location = document.createElement("span");
-    location.textContent = `⌖ ${item.location}`;
-    const date = document.createElement("span");
-    date.textContent = `▦ ${item.date}`;
-    meta.append(location, date);
+    meta.appendChild(createTextElement("span", "", `⌖ ${item.location}`));
+    meta.appendChild(createTextElement("span", "", `▦ ${formatDate(item.date)}`));
+    card.appendChild(meta);
 
-    card.append(top, category, description, meta);
     if (item.contact) {
-      const contact = document.createElement("p");
-      contact.className = "report-contact";
-      contact.textContent = `Contact: ${item.contact}`;
-      card.appendChild(contact);
+      card.appendChild(createTextElement("div", "report-contact", `Contact: ${item.contact}`));
     }
     reportList.appendChild(card);
   });
+
+  updateStats();
 }
+
+function showToast(message) {
+  toast.textContent = message;
+  toast.classList.add("show");
+  window.clearTimeout(showToast.timeoutId);
+  showToast.timeoutId = window.setTimeout(() => toast.classList.remove("show"), 2800);
+}
+
+document.querySelectorAll('input[name="reportType"]').forEach(input => {
+  input.addEventListener("change", () => {
+    document.querySelectorAll(".type-option").forEach(option => {
+      option.classList.toggle("selected", option.dataset.type === input.value);
+    });
+  });
+});
 
 form.addEventListener("submit", event => {
   event.preventDefault();
@@ -87,7 +129,7 @@ form.addEventListener("submit", event => {
 
   const formData = new FormData(form);
   const newReport = {
-    id: Date.now().toString(),
+    id: (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
     type: formData.get("reportType"),
     name: formData.get("itemName").trim(),
     category: formData.get("category"),
@@ -110,7 +152,20 @@ form.addEventListener("submit", event => {
   }
 
   form.reset();
+  document.querySelector('input[name="reportType"][value="Lost"]').checked = true;
+  document.querySelectorAll(".type-option").forEach(option => {
+    option.classList.toggle("selected", option.dataset.type === "Lost");
+  });
   document.getElementById("date").value = new Date().toISOString().slice(0, 10);
+
+  filterSelect.value = "All";
+  searchInput.value = "";
   renderReports();
+  showToast("Your report has been posted successfully.");
 });
+
+filterSelect.addEventListener("change", renderReports);
+searchInput.addEventListener("input", renderReports);
+
+document.getElementById("date").value = new Date().toISOString().slice(0, 10);
 renderReports();
