@@ -3,15 +3,133 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A community lost and found board for barangay residents.">
   <title>Barangay Lost & Found</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <script src="script.js" defer></script>
 </head>
 <body>
-  <header class="topbar"><a class="brand" href="#"><span class="brand-mark">B</span><span><strong>Barangay</strong><small>LOST & FOUND</small></span></a></header>
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="Barangay Lost and Found home">
+      <span class="brand-mark">B</span>
+      <span><strong>Barangay</strong><small>LOST & FOUND</small></span>
+    </a>
+    <span class="community-label"><span class="status-dot"></span> Community item board</span>
+  </header>
+
   <main class="container">
-    <section class="hero"><p class="eyebrow">YOUR COMMUNITY, CONNECTED</p><h1>Lost something? Let's bring it home.</h1><p>A shared place for neighbors to report missing belongings and reunite found items with their owners.</p></section>
-    <section class="content-grid"><section class="panel"><h2>Post a report</h2><p>Report form will be added in the next step.</p></section><section class="panel"><h2>Recent reports</h2><p>Community reports will appear here.</p></section></section>
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">YOUR COMMUNITY, CONNECTED</p>
+        <h1>Lost something?<br><span>Let's bring it home.</span></h1>
+        <p class="hero-description">A shared place for neighbors to report missing belongings and reunite found items with their owners.</p>
+        <a class="primary-link" href="#report-form">Post an item <span aria-hidden="true">→</span></a>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <div class="art-circle"></div>
+        <div class="art-card card-back">•••<div class="art-line"></div><div class="art-line short"></div></div>
+        <div class="art-card card-front"><span class="art-icon">⌕</span><strong>Found together.</strong><small>Right here in your barangay.</small></div>
+        <span class="spark spark-one">✦</span><span class="spark spark-two">✳</span>
+      </div>
+    </section>
+
+    <section class="stats" aria-label="Report statistics">
+      <div class="stat"><span class="stat-icon">▤</span><div><strong id="total-count">0</strong><small>Total reports</small></div></div>
+      <div class="stat"><span class="stat-icon lost-icon">⌕</span><div><strong id="lost-count">0</strong><small>Items lost</small></div></div>
+      <div class="stat"><span class="stat-icon found-icon">✓</span><div><strong id="found-count">0</strong><small>Items found</small></div></div>
+    </section>
+
+    <section class="content-grid">
+      <section class="panel form-panel" id="report-form">
+        <div class="section-heading">
+          <div><p class="eyebrow">HELP YOUR NEIGHBORS</p><h2>Post a report</h2></div>
+          <span class="heading-icon">＋</span>
+        </div>
+        <p class="section-intro">Share a few details so the community can help.</p>
+
+        <form id="item-form" novalidate>
+          <fieldset class="type-field">
+            <legend>What would you like to report? <span class="required">*</span></legend>
+            <div class="type-options">
+              <label class="type-option selected" data-type="Lost">
+                <input type="radio" name="reportType" value="Lost" checked>
+                <span class="type-symbol">⌕</span><span><strong>Lost item</strong><small>I misplaced something</small></span>
+              </label>
+              <label class="type-option" data-type="Found">
+                <input type="radio" name="reportType" value="Found">
+                <span class="type-symbol found-symbol">✓</span><span><strong>Found item</strong><small>I found something</small></span>
+              </label>
+            </div>
+          </fieldset>
+
+          <div class="form-row">
+            <div class="field">
+              <label for="item-name">Item name <span class="required">*</span></label>
+              <input id="item-name" name="itemName" maxlength="60" placeholder="e.g. Black wallet" required>
+            </div>
+            <div class="field">
+              <label for="category">Category <span class="required">*</span></label>
+              <select id="category" name="category" required>
+                <option value="">Select category</option>
+                <option>Electronics</option><option>Wallet / Money</option><option>Keys</option>
+                <option>Documents / IDs</option><option>Clothing</option><option>Bags</option>
+                <option>Jewelry</option><option>Pets</option><option>Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field">
+              <label for="location">Location <span class="required">*</span></label>
+              <input id="location" name="location" maxlength="100" placeholder="e.g. Near Barangay Hall" required>
+            </div>
+            <div class="field">
+              <label for="date">Date <span class="required">*</span></label>
+              <input id="date" name="date" type="date" required>
+            </div>
+          </div>
+          <div class="field">
+            <label for="description">Description <span class="required">*</span></label>
+            <textarea id="description" name="description" rows="4" maxlength="500" placeholder="Add helpful details such as color, brand, or identifying features. Avoid posting sensitive personal information." required></textarea>
+            <small class="field-hint">Do not include passwords, full ID numbers, or other sensitive information.</small>
+          </div>
+          <div class="field">
+            <label for="contact">Contact information <span class="optional">(optional)</span></label>
+            <input id="contact" name="contact" maxlength="100" placeholder="How can the owner or finder reach you?">
+          </div>
+          <p class="form-error" id="form-error" role="alert" aria-live="polite"></p>
+          <button class="submit-button" type="submit">Submit report <span aria-hidden="true">→</span></button>
+          <p class="privacy-note">Reports are saved in this browser for this demonstration.</p>
+        </form>
+      </section>
+
+      <section class="panel listings-panel">
+        <div class="section-heading listing-heading">
+          <div><p class="eyebrow">COMMUNITY BOARD</p><h2>Recent reports</h2></div>
+          <span class="live-label"><span class="status-dot"></span> Live board</span>
+        </div>
+        <p class="section-intro">Browse items reported by your neighbors.</p>
+        <div class="toolbar">
+          <label class="search-box"><span aria-hidden="true">⌕</span><input id="search-input" type="search" placeholder="Search items or locations..." aria-label="Search reports"></label>
+          <select id="filter-select" aria-label="Filter reports">
+            <option value="All">All reports</option><option value="Lost">Lost only</option><option value="Found">Found only</option>
+          </select>
+        </div>
+        <div id="report-list" class="report-list" aria-live="polite"></div>
+        <div id="empty-state" class="empty-state">
+          <span class="empty-icon">⌕</span>
+          <h3>No reports yet</h3>
+          <p>Be the first to post a lost or found item and help your community.</p>
+          <a href="#report-form">Create the first report</a>
+        </div>
+        <p class="demo-note">Demo notice: this board uses local browser storage. Reports are not shared between different devices.</p>
+      </section>
+    </section>
+    <footer><span>Barangay Lost & Found</span><span>Neighbors helping neighbors.</span></footer>
   </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </body>
 </html>
